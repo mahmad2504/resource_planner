@@ -8,6 +8,8 @@ use Auth;
 use Illuminate\Http\Request;
 use Response;
 use App\Ldap;
+use App\Projects;
+use App\Resources;
 class HomeController extends Controller
 {
     /**
@@ -43,10 +45,11 @@ class HomeController extends Controller
 		}
 		else
 			$request->session()->put('data', $data);
+		
 		return [];
 		//return $data->user_displayname;
 	}
-    public function LoadPlanner(Request $request)
+    public function Planner(Request $request)
     {
         $data = $request->session()->get('data');
 		if($data == null)
@@ -54,6 +57,67 @@ class HomeController extends Controller
 		if(!isset($data->user_name))
 			return view('login');
         $displayname=$data->user_displayname;
-		return view('planner',compact('displayname'));
+		$projects = new Projects();
+		$projects = $projects->all();
+		
+		$resources = new Resources();
+		$resources = $resources->useronly($data->user_name);
+		
+	//dd($projects);
+		if(file_exists('data/'.$data->user_name."/rmo/latest"))
+			$data = file_get_contents('data/'.$data->user_name."/rmo/latest");
+		else
+			$data = '{"data":[]}';
+		$rmo = json_decode($data);
+		//dd(json_decode($rmo));
+		return view('planner',compact('rmo','displayname','projects','resources'));
     }
+	public function LoadRMO(Request $request)
+	{
+		$data = $request->session()->get('data');
+		if($data == null)
+			return Response::json(['status' => 'Error'], 404); 
+		$data = file_get_contents('data/'.$data->user_name."/rmo/latest");
+		dd(json_decode($data));
+	}
+	public function SaveRMO(Request $request)
+	{
+		$date =  new \DateTime();
+		$data = $request->session()->get('data');
+		if($data == null)
+			return Response::json(['status' => 'Error'], 404); 
+		$rmofolder='data/'.$data->user_name."/rmo";
+		
+		if(!file_exists($rmofolder))
+			mkdir($rmofolder, 0, true);
+		
+		
+		
+		//echo $data->user_name;
+		$filename = $date->format('Y-m');
+		file_put_contents($rmofolder."/latest",json_encode($request->rmo));
+		file_put_contents($rmofolder."/".$filename,json_encode($request->rmo));
+			return Response::json(['status' => 'OK']); 
+	}
+	public function Projects(Request $request)
+	{
+		$data = $request->session()->get('data');
+		if($data == null)
+			return Response::json(['status' => 'Error'], 404);
+		$projects = new Projects();
+		return $projects->all();
+		//$conf='data/'.$data->user_name."/conf";
+		//file_get_contents(
+	}
+	public function Resources(Request $request)
+	{
+		$data = $request->session()->get('data');
+		if($data == null)
+			return Response::json(['status' => 'Error'], 404);
+		$resources = new Resources();
+		if($request->my == 1)
+			return $resources->useronly($data->user_name);
+		else
+			return $resources->all();
+	}
 }
