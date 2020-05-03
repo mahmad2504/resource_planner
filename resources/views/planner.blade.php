@@ -38,7 +38,7 @@ overflow: scroll
 <hr>
 
 <footer id="footer" style="text-align: center;width:90%;" class="container-fluid">
-	<small style="color:grey" >&#169; Embedded Platform Soltions, mentor A Siemens Buisness.
+	<small style="color:grey" >&#169; Embedded Platform Soltions, Mentor A Siemens Business.
 	<a style="color:grey" href="mailto:Mumtaz_Ahmad@mentor.com">
 		<i  class="fa fa-envelope"></i>
 	</a>
