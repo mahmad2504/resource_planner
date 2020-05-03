@@ -1,9 +1,9 @@
 //TODAY_COLOR='#8FBC8F';
 UTIL_OVER_COL = '#FFA500';
-UTIL_100_COL='#32CD32';//'#5588ff';
-UTIL_75_COL='#ADFF2F';
-UTIL_50_COL='#F0E68C';
-UTIL_25_COL='#FFFF00';
+UTIL_100_COL='#00FA9A';//'#5588ff';
+UTIL_75_COL='#98FB98';
+UTIL_25_COL='#F0E68C';
+UTIL_50_COL='#CCFF00';
 UTIL_0_COL='#FFFFFF';
 FTO_COL='#CDCDCD';
 
@@ -79,7 +79,7 @@ function Rmo(start,end,resources,projects)
 		//console.log(this.resources);
 		for(var i=0;i<this.resources.length;i++)
 		{
-			resource = this.resources[i];
+			var resource = this.resources[i];
 			//console.log(resource);
 			resource.projects = [{'index':0,'id':-1,'name':'None','utilization':[]}];
 			for(var j=0;j<data.length;j++)
@@ -183,7 +183,7 @@ function Rmo(start,end,resources,projects)
 		var fields = $(this).attr('id').split("_");	
 		project.utilization.push({'week':fields[2]+"_"+fields[3],'util':window.utilization});
 		$(this).css('background-color',FTO_COL);
-		//console.log(window.utilization);
+		console.log(window.utilization);
 		self.PaintProjectCell($(this),window.utilization);
 		$('#save').css('background-color','orange');
 	}
@@ -249,6 +249,7 @@ function Rmo(start,end,resources,projects)
 		self.DrawResourceRows();
 		self.DrawProjectRows();
 		self.PaintData();
+		window.utilization=100;
 		$('#save').css('background-color','white');
 		
 		$('.select').change(self.ProjectSlectionHandler);
@@ -413,8 +414,8 @@ function Rmo(start,end,resources,projects)
 				{
 					// this is the trigger element
 					//var $this = this;
-					console.log(this.data());
-					console.log($(this).attr('id'));
+					//console.log(this.data());
+					//console.log($(this).attr('id'));
 					// export states to data store
 					$(this).removeClass('highlight');
 					ret = $.contextMenu.getInputValues(opt, this.data());
@@ -455,6 +456,10 @@ function Rmo(start,end,resources,projects)
 			element.css('background-color',UTIL_0_COL);	
 		}
 		element.data( "radio", value ); 
+		if(value == -1)
+			element.attr('title', 'FTO');
+		else
+			element.attr('title', 'Utilization '+value+'%');
 		var fields = element.attr('id').split("_");
 		self.UpdateAccumulativeUtilization(fields[0],fields[2]+"_"+fields[3]);
 		//updatedcells.push(element);
@@ -481,7 +486,13 @@ function Rmo(start,end,resources,projects)
 					if(utilization === undefined)
 						continue;
 					utilization = parseInt(utilization);
-					acc += utilization;
+					if(utilization == -1)
+					{
+						acc = -1;
+						break;
+					}
+					else
+						acc += utilization;
 			   }   
 		   }
 	   }
@@ -516,6 +527,10 @@ function Rmo(start,end,resources,projects)
 			element.css('background-color',UTIL_0_COL);
 			
 		}
+		if(value == -1)
+			element.attr('title', 'FTO');
+		else
+			element.attr('title', 'Utilization '+value+'%');
 		element.data( "acc", value ); 
 	}
 	
