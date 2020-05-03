@@ -5,6 +5,7 @@
 <title>RMO - Mentor Graphics</title>
 <link rel="stylesheet" href="{{ asset('css/jquery.2.7.1.contextMenu.min.css') }}" />
 <link rel="stylesheet" href="{{ asset('css/font-awesome.4.7.0.min.css') }}" />
+
 @yield('csslinks')
 <style>
 	@yield('style')

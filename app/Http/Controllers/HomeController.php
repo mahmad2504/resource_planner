@@ -26,6 +26,8 @@ class HomeController extends Controller
 	{
 		$request->session()->forget('data');
 		echo "Your are logged out of system";
+		return redirect('login');
+		//return view('login');
 	}
 	public function Login(Request $request)
 	{
