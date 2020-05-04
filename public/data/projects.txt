@@ -1,5 +1,29 @@
 [
-
+{
+"id":"1",
+"name":"NGC Phase II/III",
+"closed":"0"
+},
+{
+"id":"3",
+"name":"Zhenjiang",
+"closed":"0"
+},
+{
+"id":"3",
+"name":"UEFI Stage 2",
+"closed":"0"
+},
+{
+"id":"3",
+"name":"UEFI Stage 2 PCR01",
+"closed":"0"
+},
+{
+"id":"3",
+"name":"UEFI Stage 2 PCR02",
+"closed":"0"
+},
 {
 "id":"4",
 "name":"Omni 2.0.0",
