@@ -422,13 +422,16 @@ function Rmo(start,end,resources,projects)
 					ret = $.contextMenu.getInputValues(opt, this.data());
 					
 					var fields = $(this).attr('id').split("_");	
+					
 					var resourceid=fields[0];
 					var projectindex=fields[1];
 					var found=0;
+					console.log("resource="+resourceid);
+					console.log("projectindex="+projectindex);
 					for(var i=0;i<window.data.length;i++)
 					{
 						var resource=window.data[i];
-						for(var j=0;i<resource.projects.length;j++)
+						for(var j=0;j<resource.projects.length;j++)
 						{
 							var project=resource.projects[j];
 							if(project.index == projectindex)
