@@ -234,6 +234,7 @@ function Rmo(start,end,resources,projects)
 					//console.log(utilization.week);
 					//console.log(utilization.util);
 				}
+				
 			}
 			//self.PaintProjectCell($(this),window.utilization);
 		}
@@ -280,7 +281,7 @@ function Rmo(start,end,resources,projects)
 						}
 						else
 						{
-							newproject={'id':-1,'name':'None','index':0};
+							newproject={'id':-1,'name':'None','index':0,'utilization':[]};
 							//var parent = resource.element;
 						}
 						
@@ -420,6 +421,29 @@ function Rmo(start,end,resources,projects)
 					$(this).removeClass('highlight');
 					ret = $.contextMenu.getInputValues(opt, this.data());
 					
+					var fields = $(this).attr('id').split("_");	
+					var resourceid=fields[0];
+					var projectindex=fields[1];
+					var found=0;
+					for(var i=0;i<window.data.length;i++)
+					{
+						var resource=window.data[i];
+						for(var j=0;i<resource.projects.length;j++)
+						{
+							var project=resource.projects[j];
+							if(project.index == projectindex)
+							{
+								project.utilization.push({'week':fields[2]+"_"+fields[3],'util':window.utilization});
+								found=1;
+								break;
+							}
+						}
+		                if(found)
+							break;
+					}
+					//console.log(fields);
+		//project.utilization.push({'week':fields[2]+"_"+fields[3],'util':window.utilization});
+		
 					self.PaintProjectCell( $(this),ret.radio );
 				   
 					//console.log(ret);
