@@ -7,16 +7,14 @@ UTIL_50_COL='#CCFF00';
 UTIL_0_COL='#FFFFFF';
 FTO_COL='#CDCDCD';
 
-function Rmo(start,end,resources,projects,nextindex)
+function Rmo(start,end,resources,projects)
 {
 	var self = this;
-
 	this.start = start;
 	this.end = end;
 	this.resources=resources;
 	this.projects=projects;
 	window.utilization =100;
-	window.nextindex = nextindex;
 	this.dateArray = null;
 	this.today_color='#8FBC8F';
 	Date.prototype.addDays = function(days) 
@@ -76,62 +74,14 @@ function Rmo(start,end,resources,projects,nextindex)
 		}
 		return 1 + Math.ceil((firstThursday - tdt) / 604800000);
 	}
-	this.insert = function(str, index, value) 
-	{
-		return str.substr(0, index) + value + str.substr(index);
-	}
 	this.PreProcess = function(data)
 	{
-		if(window.nextindex === undefined)
-			window.nextindex = 0;
-		
-		var startweek = '';
-		for (var week in this.dateArray.weekArray) 
-		{
-			if(weekArray[week].length == 7)
-			{
-				startweek = week;
-				if(startweek.length != 7)
-					startweek = self.insert(startweek,5,'0');
-				break;		
-			}
-		}
-		
-		for(var j=0;j<data.length;j++)
-		{
-			var resource = data[j];
-			if(resource.projects === undefined)
-				continue;
-			for(var k=0;k<resource.projects.length;k++)
-			{
-				var project=resource.projects[k];
-				var week = project.utilization[project.utilization.length-1];
-	
-				if(week.week.length != 7)
-					week=self.insert(week.week,5,'0');
-				else
-					week=week.week;
-				
-				console.log(project.name+" "+week+" "+startweek);
-				project.hide = 0;
-				if(week < startweek)
-				{
-					//project.name = project.name+"D"; 
-					project.hide = 1;
-					//console.log(project.name+" Deete");
-				}
-				if(project.index >= window.nextindex)
-				{
-					window.nextindex = project.index+1;
-				}	
-			}
-
-		}
-			
+		//console.log(this.resources);
 		for(var i=0;i<this.resources.length;i++)
 		{
 			var resource = this.resources[i];
 			//console.log(resource);
+			resource.projects = [{'index':0,'id':-1,'name':'None','utilization':[]}];
 			for(var j=0;j<data.length;j++)
 			{
 				dresource = data[j];
@@ -140,23 +90,20 @@ function Rmo(start,end,resources,projects,nextindex)
 				if(parseInt(dresource.id) == parseInt(resource.id))
 				{
 					if(dresource.projects === undefined)
-						dresource.projects = [];
-					//[{'index':window.nextindex++,'id':-1,'name':'None','utilization':[]}];
+						dresource.projects = [{'index':0,'id':-1,'name':'None','utilization':[]}];
 					
 					for(var k=0;k<dresource.projects.length;k++)
 					{
 						if(dresource.projects[k].utilization === undefined)
 							dresource.projects[k].utilization=[];
-						//dresource.projects[k].index=k;
+						dresource.projects[k].index=k;
 					}
 					break;
 				}
 			}
 			if(j==data.length)// not found
 			{
-				//console.log(resource);
-				resource.projects = [];
-				//[{'index':window.nextindex++,'id':-1,'name':'None','utilization':[]}];
+				console.log(resource);
 				data.push(resource);
 			}
 		}
@@ -233,24 +180,10 @@ function Rmo(start,end,resources,projects,nextindex)
 				break;
 			}
 		}
-		
 		var fields = $(this).attr('id').split("_");	
-		//project.utilization.push({'week':fields[2]+"_"+fields[3],'util':window.utilization});
-		var obj = {'week':fields[2]+"_"+fields[3],'util':window.utilization};
-		var index = $(this).data('index');
-		if(index === undefined)
-		{
-			index = project.utilization.push(obj);
-			$(this).data('index',index-1);
-		}
-		else
-			project.utilization[index] = obj;
-		//project.utilization[fields[2]+"_"+fields[3]]=window.utilization;
-		//console.log(project);
-		//Object.values(utilization.reduce((acc,cur)=>Object.assign(acc,{[cur.week]:cur}),{}))
-		
+		project.utilization.push({'week':fields[2]+"_"+fields[3],'util':window.utilization});
 		$(this).css('background-color',FTO_COL);
-		//console.log(window.utilization);
+		console.log(window.utilization);
 		self.PaintProjectCell($(this),window.utilization);
 		$('#save').css('background-color','orange');
 	}
@@ -297,10 +230,7 @@ function Rmo(start,end,resources,projects,nextindex)
 					//console.log('#'+resource.id+"_"+project.index+"_"+utilization.week);
 					var cell = $('#'+resource.id+"_"+project.index+"_"+utilization.week);
 					if(cell.length)
-					{
-						cell.data('index',k);
 						self.PaintProjectCell(cell,utilization.util);
-					}
 					//console.log(utilization.week);
 					//console.log(utilization.util);
 				}
@@ -316,10 +246,10 @@ function Rmo(start,end,resources,projects,nextindex)
 		window.dateArray = this.dateArray;
 		this.tag=tag;
 		self.CreateTable('#'+tag);
-		self.PreProcess(data);
+		//self.PreProcess(data);
 		self.DrawResourceRows();
 		self.DrawProjectRows();
-		self.PaintData();
+		//self.PaintData();
 		window.utilization=100;
 		$('#save').css('background-color','white');
 		
@@ -334,7 +264,6 @@ function Rmo(start,end,resources,projects,nextindex)
 			function()
 			{
 				var resourceid=$(this).data("resourceid");
-				console.log("Nextindex="+window.nextindex);
 				for(var i=0;i<window.data.length;i++)
 				{
 					resource=window.data[i];
@@ -346,18 +275,16 @@ function Rmo(start,end,resources,projects,nextindex)
 						if(resource.projects.length > 0)
 						{
 							var lastproject = resource.projects[resource.projects.length-1];
-							newproject={'id':-1,'name':'None','index':window.nextindex++,'utilization':[]};
+							newproject={'id':-1,'name':'None','index':lastproject.index+1,'utilization':[]};
 							parent = lastproject.element;
 							//var parent = resource.element;
 						}
 						else
 						{
-							newproject={'id':-1,'name':'None','index':window.nextindex++,'utilization':[]};
+							newproject={'id':-1,'name':'None','index':0,'utilization':[]};
 							//var parent = resource.element;
-						}	
-						console.log(resource.projects);
-						if(resource.projects === undefined)
-							resource.projects = [];
+						}
+						
 						resource.projects.push(newproject);
 						newproject.element = self.GenerateProjectRow(parent,resource, newproject);
 						$('.delete').click(self.DeleteRowHandler);
@@ -382,10 +309,7 @@ function Rmo(start,end,resources,projects,nextindex)
 						{
 							for(var j=0;j<resource.projects.length;j++)
 							{
-								if(resource.projects[j].hide)
-									resource.projects[j].element.hide();
-								else
-									resource.projects[j].element.show();
+								resource.projects[j].element.show();
 							}
 							resource.addrow.element.show();
 						}
@@ -467,7 +391,7 @@ function Rmo(start,end,resources,projects,nextindex)
 				{
 					// this is the trigger element
 					//var $this = this;
-					//console.log($(this).attr('id'));
+					console.log($(this).attr('id'));
 					$(this).addClass('highlight');
 					// import states from data store 
 					rert = 
@@ -477,7 +401,7 @@ function Rmo(start,end,resources,projects,nextindex)
 						"select": null
 					}
 					data = this.data();
-					//console.log(data);
+					console.log(data);
 					if(data.radio === undefined)
 						data ={"radio":window.utilization.toString()};
 					else
@@ -486,11 +410,6 @@ function Rmo(start,end,resources,projects,nextindex)
 					$.contextMenu.setInputValues(opt,data);
 					// this basically fills the input commands from an object
 					// like {name: "foo", yesno: true, radio: "3", &hellip;}
-					
-					var fields = $(this).attr('id').split("_");	
-					var resourceid=fields[0];
-					var projectindex=fields[1];
-					lastid = resourceid+projectindex;
 				}, 
 				hide: function(opt) 
 				{
@@ -506,45 +425,18 @@ function Rmo(start,end,resources,projects,nextindex)
 					
 					var resourceid=fields[0];
 					var projectindex=fields[1];
-	
-					if(lastid != resourceid+projectindex)
-						return true;
-					
-					$('#save').css('background-color','orange');
-					lastid = 0;
-					
+					var found=0;
 					console.log("resource="+resourceid);
 					console.log("projectindex="+projectindex);
-					var found=0;
 					for(var i=0;i<window.data.length;i++)
 					{
 						var resource=window.data[i];
-						console.log("Resourceid="+resource.id);
-						//console.log(resource);
-						//console.log(window.data);
 						for(var j=0;j<resource.projects.length;j++)
 						{
 							var project=resource.projects[j];
-							//console.log("Project index ="+project.index);
 							if(project.index == projectindex)
 							{
-								//console.log(window.utilization);
-								console.log("Here");
-								var obj = {'week':fields[2]+"_"+fields[3],'util':ret.radio};
-								var index = $(this).data('index');
-								if(index === undefined)
-								{
-									index = project.utilization.push(obj);
-									$(this).data('index',index-1);
-								}
-								else
-									project.utilization[index] = obj;
-								
-								console.log("RCH"+index);
-								//var obj = {'week':fields[2]+"_"+fields[3],'util':window.utilization};
-								//var index = project.utilization.push(obj);
-								//project.utilization[fields[2]+"_"+fields[3]]=window.utilization;
-								
+								project.utilization.push({'week':fields[2]+"_"+fields[3],'util':window.utilization});
 								found=1;
 								break;
 							}
@@ -554,9 +446,9 @@ function Rmo(start,end,resources,projects,nextindex)
 					}
 					//console.log(fields);
 		//project.utilization.push({'week':fields[2]+"_"+fields[3],'util':window.utilization});
-					
+		
 					self.PaintProjectCell( $(this),ret.radio );
-					return true;
+				   
 					//console.log(ret);
 					// this basically dumps the input commands' values to an object
 					// like {name: "foo", yesno: true, radio: "3", &hellip;}
@@ -566,7 +458,6 @@ function Rmo(start,end,resources,projects,nextindex)
 	}
 	this.PaintProjectCell = function(element,value)
 	{
-		//console.log(element.data('index'));
 		if( value == -1)
 		{
 			element.css('background-color',FTO_COL);
@@ -683,21 +574,12 @@ function Rmo(start,end,resources,projects,nextindex)
 	}
 	this.CreateTable = function(tag)
 	{
-		var savebutton= '<button id="save" type="button">Save!</button>';
-
 		table = $('<table>');
 		table.addClass("RmoTable");
 		
-		//$(tag).append($(savebutton));
 		
 		$(tag).append(table);
-		
-		table.append('<tr>sss</tr>');
-		
 		$(tag).append('<br>');
-		
-		emptyrow = self.GenerateEmptyRow();
-		table.append(emptyrow);
 		
 		yearrow = self.GenerateYearRow();
 		table.append(yearrow);
@@ -713,7 +595,6 @@ function Rmo(start,end,resources,projects,nextindex)
 	}
 	this.GenerateProjectRow=function(parent,resource,project)
 	{
-		console.log("------------->"+project.hide);
 		var deleteicon=$('<i title="Delete row" style="margin-top:3px;font-size:12px; float:right;" class="fa fa-times-circle" aria-hidden="true"></i>');
 		
 		var select=$('<select></select>');
@@ -761,7 +642,6 @@ function Rmo(start,end,resources,projects,nextindex)
 		cells = self.GenerateProjectRowCells(resource,project,row); 
 		//parent.append(row);
 		parent.after(row);
-		
 		return row;
 	}
 	this.GenerateResourceRow= function(resource) 
@@ -798,33 +678,6 @@ function Rmo(start,end,resources,projects,nextindex)
 		//$('#'+idadd).hide();
 		return row;
 	}
-	this.GenerateEmptyRow = function()
-	{
-		yearArray = this.dateArray.yearArray;
-		
-		var savebutton= '<button id="save" type="button">Save!</button>';
-
-		html = '<tr>';
-		html += '<th class="cell_year"></th>';
-		html += '<th class="cell_year">&nbsp&nbsp&nbsp&nbsp</th>';
-		color='#DCDCDC';
-		colspan = 0;
-		for (var year in yearArray) 
-		{
-			if(yearArray[year].includes(1))
-				color=this.today_color;
-			else
-			{
-				if(color==this.today_color)
-					color='#FFFFFF';
-			}
-			colspan += Object.keys(yearArray[year]).length;
-		}
-		html += '<th style="background-color:'+color+';" class="cell_year" colspan="'+colspan+'">'+savebutton+'</th>';
-	
-		html += '</tr>';
-		return $(html);
-	}
 	this.GenerateYearRow = function()
 	{
 		yearArray = this.dateArray.yearArray;
@@ -832,7 +685,7 @@ function Rmo(start,end,resources,projects,nextindex)
 		var savebutton= '<button id="save" type="button">Save!</button>';
 
 		html = '<tr class="row_year">';
-		html += '<th class="cell_year"></th>';
+		html += '<th class="cell_year">'+savebutton+'</th>';
 		html += '<th class="cell_year">&nbsp&nbsp&nbsp&nbsp</th>';
 		color='#DCDCDC';
 		for (var year in yearArray) 
@@ -1104,11 +957,9 @@ function Rmo(start,end,resources,projects,nextindex)
 	{	
 		var savobj = {};
 		savobj.rmo = {};
-		//console.log(window.data);
 		savobj.rmo.data=JSON.parse(JSON.stringify(window.data));
 		savobj.rmo.start = this.start.toISOString().split('T')[0];
 		savobj.rmo.end = this.end.toISOString().split('T')[0];
-		savobj.rmo.nextindex = window.nextindex;
 		savobj._token = token;
 		for(var i=0;i<savobj.rmo.data.length;i++)
 		{
@@ -1121,14 +972,12 @@ function Rmo(start,end,resources,projects,nextindex)
 				delete  project.element;
 			}
 		}
-		//console.log(savobj);
-		savobj.rmo =  JSON.stringify(savobj.rmo)
+		var datatosend =  savobj;//JSON.stringify(savobj)*/
 		$.ajax({
            type: "POST",
            url: url,
-           dataType: "json",
-		   //contentType: false,
-		   //processData: false,
+           //dataType: "json",
+		   
            success: function (msg) 
 		   {
 			   //console.log(CryptoJS.MD5(datatosend).toString());
