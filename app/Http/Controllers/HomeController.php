@@ -73,7 +73,7 @@ class HomeController extends Controller
 		$resources = new Resources();
 		$resources = $resources->useronly($data->user_name);
 		
-		$start = date('Y-m-d', strtotime(date('Y-m-01').' -6 MONTH'));
+		$start = date('Y-m-d', strtotime(date('Y-m-01').' -3 MONTH'));
 		$end = date('Y-m-d', strtotime(date('Y-m-01').' +12 MONTH'));
 		
 		
