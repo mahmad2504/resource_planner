@@ -136,16 +136,20 @@ class HomeController extends Controller
 					{
 						usort($project->utilization, [$this,'compare']);
 						$nextindex = $project->index+1;
-						 
-						$last_week = $project->utilization[count($project->utilization)-1]->week;
-						if(strlen($last_week)==6)
-							$last_week = str_replace('_','_0',$last_week);
-						//dump($project->name." ".$last_week." ".$start_week);
-						if($last_week < $start_week)
+						if(count($project->utilization) > 0)
 						{
-							$del[] =$i;
-							//echo "removing ".$project->id."<br>";
-						} 
+							$last_week = $project->utilization[count($project->utilization)-1]->week;
+							if(strlen($last_week)==6)
+								$last_week = str_replace('_','_0',$last_week);
+							//dump($project->name." ".$last_week." ".$start_week);
+							if($last_week < $start_week)
+							{
+								$del[] =$i;
+								//echo "removing ".$project->id."<br>";
+							}
+						}
+						else
+							$del[] =$i;		
 					}	
 				}
 				//dump($del);
