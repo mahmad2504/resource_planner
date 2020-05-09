@@ -140,7 +140,7 @@ class HomeController extends Controller
 						$last_week = $project->utilization[count($project->utilization)-1]->week;
 						if(strlen($last_week)==6)
 							$last_week = str_replace('_','_0',$last_week);
-						dump($project->name." ".$last_week." ".$start_week);
+						//dump($project->name." ".$last_week." ".$start_week);
 						if($last_week < $start_week)
 						{
 							$del[] =$i;
