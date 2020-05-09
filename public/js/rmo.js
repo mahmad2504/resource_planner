@@ -854,7 +854,7 @@ function Rmo(start,end,resources,projects,nextindex)
 	{
 		monthArray = this.dateArray.monthArray;
 		html = '<tr class="row_month">';
-		html += '<th class="cell_month" >Month</th>';
+		html += '<th class="cell_month" >&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspMonth&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</th>';
 		html += '<th class="cell_month" ></th>';
 		color='#DCDCDC';
 		for (var month in monthArray) 
