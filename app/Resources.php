@@ -7,46 +7,28 @@ class Resources
 	private $resources=null;
 	function __construct()
 	{
-		$d = file_get_contents('data/resources.txt');
-		$d = str_replace("\r\n",'',$d);
-		$this->resources = json_decode($d);
-		//$this->resources = [];
+		$this->db = ConnectDb();
+		$this->collection = $this->db->resources;
 	}
-	function all()
+	function Get($user=null)
 	{
-		return $this->resources;	
-	}
-	function useronly($user)
-	{
-		$file='data/'.$user."/resources.txt";
-		if(!file_exists($file))
+		if($user==null)
 		{
-			dump("202 Unauthroized Access");
-			dd("Please send email to mumtaz_ahmad@mentor.com for an account");
+			$cursor = $this->collection->find([],['projection'=>['_id'=>0]]);
+			return $cursor->toArray();
 		}
-		$content = file_get_contents($file);
-		$content = str_replace("\r\n",'',$content);
-		$users = explode(",",$content);
-		
-		$resources = [];
-		foreach($users as $user)
+		else
 		{
-			$found=0;
-
-			foreach($this->resources as $resource)
+			$cursor = $this->collection->find(['manager'=>$user],['projection'=>['_id'=>0]]);
+			$users = $cursor->toArray();
+			if( count($users) ==0) 
 			{
-				if(strtolower($resource->name)==strtolower($user))
 				{
-					$resources[] = $resource;
-					$found=1;
-					break;
+					dump("202 Unauthroized Access");
+					dd("Please send email to mumtaz_ahmad@mentor.com for an account");
 				}
 			}
-			 if($found==0)
-			{
-				dd($user." Not valid");
-			}
+			return $users;
 		}
-		return $resources;
 	}
 }

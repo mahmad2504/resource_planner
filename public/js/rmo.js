@@ -7,16 +7,16 @@ UTIL_50_COL='#CCFF00';
 UTIL_0_COL='#FFFFFF';
 FTO_COL='#CDCDCD';
 
-function Rmo(start,end,resources,projects,nextindex)
+function Rmo(resources,projects,rmo)
 {
 	var self = this;
-
-	this.start = start;
-	this.end = end;
+	this.start = new Date(rmo.start);
+	this.end = new Date(rmo.end);
 	this.resources=resources;
 	this.projects=projects;
 	window.utilization =100;
-	window.nextindex = nextindex;
+	window.nextindex = rmo.nextindex;
+	window.owner = rmo.owner;
 	this.dateArray = null;
 	this.today_color='#8FBC8F';
 	Date.prototype.addDays = function(days) 
@@ -781,7 +781,7 @@ function Rmo(start,end,resources,projects,nextindex)
 		resource.addrow.element.hide();
 		
 		row = $('<tr></tr>');
-		cell=$('<td width="100%"></td>');
+		cell=$('<td style="font-size:17px;" width="100%"></td>');
 		cell.append(expandicon);
 		cell.append(resourcename);
 		//cell.addClass('fa fa-plus-circle');
@@ -1109,6 +1109,7 @@ function Rmo(start,end,resources,projects,nextindex)
 		savobj.rmo.start = this.start.toISOString().split('T')[0];
 		savobj.rmo.end = this.end.toISOString().split('T')[0];
 		savobj.rmo.nextindex = window.nextindex;
+		savobj.rmo.owner = window.owner;
 		savobj._token = token;
 		for(var i=0;i<savobj.rmo.data.length;i++)
 		{

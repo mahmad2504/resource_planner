@@ -28,8 +28,8 @@ overflow: scroll
 @section('content')
 
 <div  class="flex" style="height:80px; border: 3px solid #4682B4;background:#2e5790;">
-    <img width="200px" src="images/logo2.png"></img>
-	<span class="center" style=" align: middle; text-align: center; color:#6a92bd;font-size:40px;" >RESOURCE PLANNER</span>
+    <img width="200px" src="{{asset('images/logo2.png')}}"></img>
+	<span class="center" style=" align: middle; text-align: center; color:#6a92bd;font-size:40px;" >RESOURCE PROJECT VIEW</span>
 </div>
 <br>
 <br>
@@ -58,12 +58,6 @@ overflow: scroll
  
 $( document ).ready(function()
 {
-	var start =  new Date();
-	start.setMonth(start.getMonth()  - 3);
-	var end = new Date();
-	end.setMonth(end.getMonth()  + 12);
- 
-	//rmoobj = new Rmo(start,end,resources,projects);
-	//rmoobj.Show('divtable',rmo.data,'{{route("save")}}','{{csrf_token()}}');
+	
 });
 @endsection

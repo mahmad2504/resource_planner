@@ -28,7 +28,7 @@ overflow: scroll
 @section('content')
 
 <div  class="flex" style="height:80px; border: 3px solid #4682B4;background:#2e5790;">
-    <img width="200px" src="images/logo2.png"></img>
+    <img width="200px" src="{{ asset('images/logo2.png') }}"></img>
 	<span class="center" style=" align: middle; text-align: center; color:#6a92bd;font-size:40px;" >RESOURCE PLANNER</span>
 	<i style="color:white;font-size:20px;margin-top:-50px;float:right;margin-right:20px;" class="fa fa-user" aria-hidden="true">&nbsp&nbsp&nbsp{{$displayname}}&nbsp&nbsp|&nbsp&nbsp<a href="logout">Logout</a></i>
 </div>
@@ -62,13 +62,7 @@ var rmo=@json($rmo);
  
 $( document ).ready(function()
 {
-	var start =  new Date(rmo.start);
-	
-	//start.setMonth(start.getMonth()  - 2);
-	var end = new Date(rmo.end);
-	//end.setMonth(end.getMonth()  + 12);
-    //console.log("Next Index="+rmo.nextindex);
-	rmoobj = new Rmo(start,end,resources,projects,rmo.nextindex);
+	rmoobj = new Rmo(resources,projects,rmo);
 	rmoobj.Show('divtable',rmo.data,'{{route("save")}}','{{csrf_token()}}');
 });
 @endsection
