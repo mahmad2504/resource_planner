@@ -31,12 +31,12 @@
 },
 {
 "id":"6",
-"name":"Omni 2.0.0",
+"name":"Esperanto",
 "closed":"0"
 },
 {
 "id":"7",
-"name":"Omni 2.0.1",
+"name":"MCF RD",
 "closed":"0"
 },
 {
