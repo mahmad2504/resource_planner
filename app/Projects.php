@@ -10,7 +10,7 @@ class Projects
 		$this->db = ConnectDb();
 		$this->collection = $this->db->projects;
 	}
-	function Get($user)
+	function Get($user=null)
 	{
 		$cursor = $this->collection->find(['closed'=>0],['projection'=>['_id'=>0]]);
 		
@@ -24,9 +24,14 @@ class Projects
 		
 		foreach($projects as $project)
 		{
-			if(in_array($user,(Array)$project->users))
-				$selected[]=$project;
-			else if($project->users[0]=='all')
+			if($user != null)
+			{
+				if(in_array($user,(Array)$project->users))
+					$selected[]=$project;
+				else if($project->users[0]=='all')
+					$selected[]=$project;
+			}
+			else
 				$selected[]=$project;
 		}
 		if( count($selected) ==0) 
