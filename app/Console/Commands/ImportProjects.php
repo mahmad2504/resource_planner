@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Resources;
 
 class ImportProjects extends Command
 {
@@ -37,11 +38,33 @@ class ImportProjects extends Command
      */
     public function handle()
     {
-        //
-		$db = ConnectDb();
-		$d = file_get_contents('projects.txt');
-		$d = str_replace("\r\n",'',$d);
-		$projects = json_decode($d);
+        $db = ConnectDb();
+		$file = fopen("projects.txt","r");
+		$projects = [];
+		while(!\feof($file))
+		{
+			$line = fgets($file);
+			$line = str_replace("\r\n",'',$line);
+			$fields = explode(":",$line);
+			$obj =  new \StdClass();
+			$obj->id=$fields[0];
+			$obj->name=$fields[1];
+			$obj->closed=0;
+			if(!isset($fields[2]))
+				$obj->closed=1;
+			else
+			{
+				$users = explode(',',$fields[2]);
+				$obj->users=$users;
+
+			}
+			$projects[] = $obj;
+		}
+		fclose($file);
+		//$d = file_get_contents('projects.txt');
+		//$d = str_replace("\r\n",'',$d);
+		//$projects = json_decode($d);
+		
 		$expectedid=0;
 		foreach($projects as $project)
 		{

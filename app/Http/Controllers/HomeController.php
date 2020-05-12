@@ -61,7 +61,7 @@ class HomeController extends Controller
 			return view('login');
         $displayname=$data->user_displayname;
 		$projects = new Projects();
-		$projects = $projects->Get();
+		$projects = $projects->Get($data->user_name);
 		
 		$resources = new Resources();
 		$resources = $resources->Get($data->user_name);

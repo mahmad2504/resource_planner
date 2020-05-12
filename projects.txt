@@ -1,57 +1,18 @@
-[
-{
-"id":"0",
-"name":"Misc",
-"closed":"0"
-},
-{
-"id":"1",
-"name":"NGC Phase II/III",
-"closed":"0"
-},
-{
-"id":"2",
-"name":"Zhenjiang",
-"closed":"0"
-},
-{
-"id":"3",
-"name":"UEFI Stage 2",
-"closed":"0"
-},
-{
-"id":"4",
-"name":"UEFI Stage 2 PCR01",
-"closed":"0"
-},
-{
-"id":"5",
-"name":"UEFI Stage 2 PCR02",
-"closed":"0"
-},
-{
-"id":"6",
-"name":"Esperanto",
-"closed":"0"
-},
-{
-"id":"7",
-"name":"MCF RD",
-"closed":"0"
-},
-{
-"id":"8",
-"name":"MEIF 1.4.0",
-"closed":"0"
-},
-{
-"id":"9",
-"name":"MEHV 2.0",
-"closed":"1"
-},
-{
-"id":"10",
-"name":"GE-FM2-SOW-8822",
-"closed":"0"
-}
-]
+0:Misc:all
+1:NGC Phase II/III:atraza
+2:Zhenjiang:atraza
+3:UEFI Stage 2:atraza
+4:UEFI Stage 2 PCR01:atraza
+5:UEFI Stage 2 PCR02:atraza
+6:Esperanto:atraza
+7:Omni 2.0.0:mhussein
+8:Omni 2.1.0EAR:mhussein
+9:HV 2.0.0:mhussein,atraza
+10:GE-FM2-SOW-8822:atraza
+11:Omni 2.1.0:mhussein
+12:MEIF 1.4.0:mhussein
+13:FLEX 12.0.0:mhussein
+14:Nuc Dogwood Async3:mhussein
+15:Nucleus 4.1.0:mhussein
+16:CB12:mhussein
+17:CB11 Toolchain Patch 4:mhussein

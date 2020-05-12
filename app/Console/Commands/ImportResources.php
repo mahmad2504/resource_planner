@@ -43,9 +43,21 @@ class ImportResources extends Command
     {
         //
 		$db = ConnectDb();
-		$d = file_get_contents('resources.txt');
-		$d = str_replace("\r\n",'',$d);
-		$resources = json_decode($d);
+		
+		$file = fopen("resources.txt","r");
+		$resources = [];
+		while(!\feof($file))
+		{
+			$line = fgets($file);
+			$line = str_replace("\r\n",'',$line);
+			$fields = explode(":",$line);
+			$obj =  new \StdClass();
+			$obj->id=$fields[0];
+			$obj->name=$fields[1];
+			$obj->manager=$fields[2];
+			$resources[] = $obj;
+		}
+		fclose($file);
 		$expectedid = 0;
 		foreach($resources as $resource)
 		{
