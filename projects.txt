@@ -5,13 +5,13 @@
 4:UEFI Stage 2 PCR01:atraza
 5:UEFI Stage 2 PCR02:atraza
 6:Esperanto:atraza
-7:Omni 2.0.0:mhussein
-8:Omni 2.1.0EAR:mhussein
+7:Omni 2.0.0:mhussein,ahsann
+8:Omni 2.1.0EAR:mhussein,ahsann
 9:HV 2.0.0:mhussein,atraza
 10:GE-FM2-SOW-8822:atraza
 11:Omni 2.1.0:mhussein
-12:MEIF 1.4.0:mhussein
-13:FLEX 12.0.0:mhussein
+12:MEIF 1.4.0:mhussein,ahsann
+13:FLEX 12.0.0:mhussein,ahsann
 14:Nuc Dogwood Async3:mhussein
 15:Nucleus 4.1.0:mhussein
 16:CB12:mhussein
