@@ -19,7 +19,8 @@ class Resources
 		}
 		else
 		{
-			$cursor = $this->collection->find(['manager'=>$user],['projection'=>['_id'=>0]]);
+			$query=['manager'=>['$in'=>[$user,'all']]];
+			$cursor = $this->collection->find($query,['projection'=>['_id'=>0]]);
 			$users = $cursor->toArray();
 			if( count($users) ==0) 
 			{
@@ -28,6 +29,8 @@ class Resources
 					dd("Please send email to mumtaz_ahmad@mentor.com for an account");
 				}
 			}
+			//$u->manager = $users; 
+			//dd($users);
 			return $users;
 		}
 	}

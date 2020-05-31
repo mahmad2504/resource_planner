@@ -75,9 +75,37 @@ class HomeController extends Controller
     }
 	public function ProjectView(Request $request)
     {
+		$data = $request->session()->get('data');
+		$start = Period()->start;
+		$end = Period()->end;
 		$rmo =  new Rmo();
-		dd($rmo->Search($request->projectid));
-		return view('view.project');
+		if(($data == null)||($request->id != null))
+		{
+			$projects = new Projects();
+		
+			$project = $projects->GetById($request->id);
+			
+			if($project == null)
+				return Response::json(['error' => 'Invalid Project ID'], 404); 
+			
+			$projects = [];
+			$project->data = $rmo->Search($request->id);
+			$projects[] = $project;
+			return view('view.project',compact('projects','start','end'));
+		}
+		else
+		{
+			$project_list = new Projects();
+			$project_list = $project_list->Get($data->user_name);
+			$projects = [];
+			foreach($project_list as $project)
+			{
+				
+				$project->data = $rmo->Search($project->id);
+				$projects[] = $project;
+			}
+			return view('view.project',compact('projects','start','end'));
+		}
     }
 	public function SaveRMO(Request $request)
 	{

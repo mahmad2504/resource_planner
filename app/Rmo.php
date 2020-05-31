@@ -8,7 +8,7 @@ class Rmo
 		$this->db = ConnectDb();
 		$this->collection = $this->db->rmo;
 	}
-	function Get($user)
+	function GetOld($user)
 	{
 		$rmo = $this->collection->findOne(['owner'=>$user],['projection'=>['_id'=>0]]);
 		if($rmo == null)
@@ -20,43 +20,72 @@ class Rmo
 		$rmo->rmo->owner = $user;
 		return $rmo->rmo;	
 	}
-	function Search($projectid)
+	function Get($user)
+	{
+		$projection = ['projection'=>['_id'=>0]];
+		$users = $this->db->resources->find(['manager'=>$user],$projection)->toArray();
+		if(count($users)==0)
+		{
+			$da=json_decode('{"data":[],"nextindex":0}');
+			$da->owner = $user;
+			return $da;
+		}
+
+		$rmo = new \StdClass();
+		$rmo->owner = $user;
+		$rmo->data = [];
+		foreach($users as $user)
+		{
+			$query = ['id'=>$user->id];
+			$resource = $this->db->utilization->findOne($query,$projection);
+			if($resource !=null)
+				$rmo->data[] = $resource;
+		}
+		return $rmo;
+	}
+	function SearchOld($projectid)
 	{
 		$cursor = $this->collection->find(["rmo.data.projects.id"=>$projectid,"backup"=>['$ne'=>1]]);
 		$teams = $cursor->toArray();
 		$this->Filter($teams,$projectid);
 		return $teams;
 	}
-	function Filter($teams,$projectid)
+
+	function Search($projectid)
 	{
-		foreach($teams as $team)
+		$cursor = $this->db->utilization->find(["projects.id"=>$projectid]);
+		$resources = $cursor->toArray();
+		$this->Filter($resources,$projectid);
+		return $resources;
+	}
+	function Filter($resources,$projectid)
+	{
+		$delr=[];
+		$j=-1;
+		foreach($resources as $resource)
 		{
-			$delr=[];
-			$j=-1;
-			foreach($team->rmo['data'] as $resource)
+			$j++;
+			$i=-1;
+			$del = [];
+			foreach($resource->projects as $project)
 			{
-				$j++;
-				$i=-1;
-				$del = [];
-				foreach($resource->projects as $project)
-				{
-					$i++;
-					if($projectid != $project->id)
-						$del[]=$i;
-				}
-				foreach($del as $index)
-				{
-					unset($resource->projects[$index]);
-				}
-				if(count($resource->projects)==0)
-					$delr[]=$j;
+				$i++;
+				if($projectid != $project->id)
+					$del[]=$i;
 			}
-			foreach($delr as $index)
+			foreach($del as $index)
 			{
-				unset($team->rmo['data'][$index]);
+				unset($resource->projects[$index]);
 			}
+			if(count($resource->projects)==0)
+				$delr[]=$j;
 		}
-		return $teams;
+		foreach($delr as $index)
+		{
+			unset($resources[$index]);
+		}
+
+		return $resources;
 	}
 	public function  compare($a, $b)
 	{
@@ -118,11 +147,13 @@ class Rmo
 		}
 		return $rmo;
 	}
-	public function Save($data)
+	public function SaveOld($data)
 	{
 		$date =  new \DateTime();
 		$obj = new \StdClass();
 		$obj->rmo=$this->Clean($data);
+
+		//dd($obj->rmo);
 		$obj->owner=$data->owner;
 
 		$query =['owner'=>$data->owner];
@@ -132,5 +163,20 @@ class Rmo
 		$obj->backup = 1;
 		$query =['owner'=>$obj->owner];
 		$this->collection->updateOne($query,['$set'=>$obj],['upsert'=>true]);
+	}
+	public function Save($data)
+	{
+		$date =  new \DateTime();
+		//$obj->rmo=$this->Clean($data);
+
+		//dd($data);
+		foreach($data->data as $resource)
+		{
+			//dd($resource);
+			$query =['id'=> $resource->id];
+			$this->db->utilization->updateOne($query,['$set'=>$resource],['upsert'=>true]);
+
+		}
+		return;
 	}
 }

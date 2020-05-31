@@ -1,3 +1,4 @@
+
 //TODAY_COLOR='#8FBC8F';
 UTIL_OVER_COL = '#FFA500';
 UTIL_100_COL='#00FA9A';//'#5588ff';
@@ -7,25 +8,137 @@ UTIL_50_COL='#CCFF00';
 UTIL_0_COL='#FFFFFF';
 FTO_COL='#CDCDCD';
 
-function Rmo(start,end,resources,projects)
+function Rmo(start,end)
 {
 	var self = this;
-	this.start = start;
-	this.end = end;
-	this.resources=resources;
-	this.projects=projects;
-	window.utilization =100;
-	this.dateArray = null;
+	this.start = new Date(start);
+	this.end = new Date(end);
 	this.today_color='#8FBC8F';
-	Date.prototype.addDays = function(days) 
+	this.ShowTable = function(tag)
 	{
-		var dat = new Date(this.valueOf())
-		dat.setDate(dat.getDate() + days);
-		return dat;
+		Date.prototype.addDays = function(days) 
+		{
+			var dat = new Date(this.valueOf())
+			dat.setDate(dat.getDate() + days);
+			return dat;
+		}
+		Date.prototype.getWeek = function() {
+		  var onejan = new Date(this.getFullYear(),0,1);
+		  return Math.ceil((((this - onejan) / 86400000) + onejan.getDay()+1)/7);
+		}
+		console.log(this.start);
+		console.log(this.end);
+		this.dateArray = self.GenerateTableData(this.start.getFullYear(),this.start.getMonth()+1,this.end.getFullYear(),this.end.getMonth()+1);
+		self.CreateTable('#'+tag);
 	}
-	Date.prototype.getWeek = function() {
-	  var onejan = new Date(this.getFullYear(),0,1);
-	  return Math.ceil((((this - onejan) / 86400000) + onejan.getDay()+1)/7);
+	this.PainttCell = function(element,value)
+	{
+		//console.log(element.data('index'));
+		if( value == -1)
+		{
+			element.css('background-color',FTO_COL);
+		}
+		else if( value == 100)
+		{
+			element.css('background-color',UTIL_100_COL);
+		}
+		else if( value == 75)
+		{
+			element.css('background-color',UTIL_75_COL);
+		 }
+		else if( value == 50)
+		{
+			element.css('background-color',UTIL_50_COL);
+		}
+		else if( value == 25)
+		{
+			element.css('background-color',UTIL_25_COL);
+		}
+		else
+		{
+			element.css('background-color',UTIL_0_COL);	
+		}
+		if(value == -1)
+			element.attr('title', 'FTO');
+		else
+			element.attr('title', 'Utilization '+value+'%');
+	}
+	this.ShowProject = function(project)
+	{
+	
+		data = project.data;
+		row = self.GenerateProjectRow(project);
+		this.table.append(row);
+		for(var i=0;i<data.length;i++)
+		{
+			var resource = data[i];
+			for(var j=0;j<resource.projects.length;j++)
+			{
+				var project=resource.projects[j];
+				row = self.GenerateResourceRow(resource,project);
+				this.table.append(row);
+
+				for(var k=0;k<project.utilization.length;k++)
+				{
+					var utilization = project.utilization[k];
+					var id='#'+resource.id+"_"+project.id+"_"+utilization.week;
+					self.PainttCell($(id),utilization.util )
+				}
+		    }
+		}
+	}
+	this.CreateTable = function(tag)
+	{
+		var savebutton= '<button id="save" type="button">Save!</button>';
+
+		var table = $('<table>');
+		table.addClass("RmoTable");
+		
+		//$(tag).append($(savebutton));
+		
+		$(tag).append(table);
+		
+		table.append('<tr>sss</tr>');
+		
+		$(tag).append('<br>');
+		
+		emptyrow = self.GenerateEmptyRow();
+		table.append(emptyrow);
+		
+		yearrow = self.GenerateYearRow();
+		table.append(yearrow);
+		
+		monthrow = self.GenerateMonthRow();
+		table.append(monthrow);
+		
+		weekrow = self.GenerateWeekRow();
+		table.append(weekrow);
+		
+		this.table = table;
+	}
+	this._GetDates =  function(startDate, stopDate) 
+	{
+		var dateArray = new Array();
+		var currentDate = startDate;
+		while (currentDate <= stopDate) 
+		{
+			dateArray.push(currentDate)
+			currentDate = currentDate.addDays(1);
+		}
+		return dateArray;
+	}
+	this.ISO8601_week_no =  function(dt) 
+	{
+		var tdt = new Date(dt.valueOf());
+		var dayn = (dt.getDay() + 6) % 7;
+		tdt.setDate(tdt.getDate() - dayn + 3);
+		var firstThursday = tdt.valueOf();
+		tdt.setMonth(0, 1);
+		if (tdt.getDay() !== 4) 
+		{
+			tdt.setMonth(0, 1 + ((4 - tdt.getDay()) + 7) % 7);
+		}
+		return 1 + Math.ceil((firstThursday - tdt) / 604800000);
 	}
 	this.isToday = (someDate) => {
 	  const today = new Date()
@@ -61,823 +174,6 @@ function Rmo(start,end,resources,projects)
 			return "December";
 		return month;
 	}
-	this.ISO8601_week_no =  function(dt) 
-	{
-		var tdt = new Date(dt.valueOf());
-		var dayn = (dt.getDay() + 6) % 7;
-		tdt.setDate(tdt.getDate() - dayn + 3);
-		var firstThursday = tdt.valueOf();
-		tdt.setMonth(0, 1);
-		if (tdt.getDay() !== 4) 
-		{
-			tdt.setMonth(0, 1 + ((4 - tdt.getDay()) + 7) % 7);
-		}
-		return 1 + Math.ceil((firstThursday - tdt) / 604800000);
-	}
-	this.PreProcess = function(data)
-	{
-		//console.log(this.resources);
-		for(var i=0;i<this.resources.length;i++)
-		{
-			var resource = this.resources[i];
-			//console.log(resource);
-			resource.projects = [{'index':0,'id':-1,'name':'None','utilization':[]}];
-			for(var j=0;j<data.length;j++)
-			{
-				dresource = data[j];
-				//console.log(parseInt(dresource.id));
-				//console.log(parseInt(resource.id));
-				if(parseInt(dresource.id) == parseInt(resource.id))
-				{
-					if(dresource.projects === undefined)
-						dresource.projects = [{'index':0,'id':-1,'name':'None','utilization':[]}];
-					
-					for(var k=0;k<dresource.projects.length;k++)
-					{
-						if(dresource.projects[k].utilization === undefined)
-							dresource.projects[k].utilization=[];
-						dresource.projects[k].index=k;
-					}
-					break;
-				}
-			}
-			if(j==data.length)// not found
-			{
-				console.log(resource);
-				data.push(resource);
-			}
-		}
-		window.data=data;
-	}
-	this.DrawResourceRows=function()
-	{
-		for(var i=0;i<window.data.length;i++)
-		{
-			resource = window.data[i];
-			resource.element = self.GenerateResourceRow(resource);
-		}
-	}
-	this.DrawProjectRows=function()
-	{
-		for(var i=0;i<window.data.length;i++)
-		{
-			resource = window.data[i];
-			parent=resource.element;
-			for(var j=0;j<resource.projects.length;j++)
-			{
-				var project=resource.projects[j];
-				parent = project.element = self.GenerateProjectRow(parent,resource,project);
-				project.element.hide();
-			}
-		}
-	}
-	this.DeleteRowHandler = function()
-	{
-		var resourceid=$(this).data("resourceid");
-		var projectindex=$(this).data("projectindex");
-		
-		for(var i=0;i<window.data.length;i++)
-		{
-			resource=window.data[i];
-			if(resource.id == resourceid)
-			{
-				for(var j=0;j<resource.projects.length;j++)
-				{
-					if(resource.projects[j].index == projectindex)
-					{
-						var index = resource.projects[j].index;
-						resource.projects[j].element.remove();
-						resource.projects = resource.projects.filter(function(item) 
-						{
-							return item.index !== index
-						})
-					}	
-				}
-			}
-		}
-		for (var week in window.dateArray.weekArray) 
-		{
-			self.UpdateAccumulativeUtilization(resourceid,week);
-		}
-		$('#save').css('background-color','orange');
-	}
-	this.ProjectCellClickHandler = function()
-	{
-		var resourceid=$(this).data("resourceid");
-		var projectindex=$(this).data("projectindex");
-		var project = null;
-		for(var i=0;i<data.length;i++)
-		{
-			resource=data[i];
-			if(resource.id == resourceid)
-			{
-				for(var j=0;j<resource.projects.length;j++)
-				{
-					project = resource.projects[j];
-					if(project.index == projectindex)
-						break;
-				}
-				break;
-			}
-		}
-		var fields = $(this).attr('id').split("_");	
-		project.utilization.push({'week':fields[2]+"_"+fields[3],'util':window.utilization});
-		$(this).css('background-color',FTO_COL);
-		console.log(window.utilization);
-		self.PaintProjectCell($(this),window.utilization);
-		$('#save').css('background-color','orange');
-	}
-	this.ProjectSlectionHandler = function()
-	{
-		var resourceid=$(this).data("resourceid");
-		var projectindex=$(this).data("projectindex");
-		var project = null;
-		for(var i=0;i<data.length;i++)
-		{
-			resource=data[i];
-			if(resource.id == resourceid)
-			{
-				for(var j=0;j<resource.projects.length;j++)
-				{
-					project = resource.projects[j];
-					if(project.index == projectindex)
-						break;
-				}
-				break;
-			}
-		}
-		//MUMTAZ
-		//project.id =
-		project.id = $(this).val();
-		project.name=$(this).find(":selected").text();
-		$('#save').css('background-color','orange');
-		//console.log($(this).val());
-		//console.log($(this).find(":selected").text());				
-	}
-	this.PaintData = function()
-	{
-		//console.log(data);
-		for(var i=0;i<data.length;i++)
-		{
-			var resource=data[i];
-			for(var j=0;j<resource.projects.length;j++)
-			{
-				var project = resource.projects[j];
-				//console.log(project);
-				for(var k=0;k<project.utilization.length;k++)
-				{
-					var utilization=project.utilization[k];
-					//console.log('#'+resource.id+"_"+project.index+"_"+utilization.week);
-					var cell = $('#'+resource.id+"_"+project.index+"_"+utilization.week);
-					if(cell.length)
-						self.PaintProjectCell(cell,utilization.util);
-					//console.log(utilization.week);
-					//console.log(utilization.util);
-				}
-				
-			}
-			//self.PaintProjectCell($(this),window.utilization);
-		}
-	}
-	this.Show = function(tag,data,saveurl, savetoken)
-	{
-		window.data=data;
-		this.dateArray = self.GenerateTableData(this.start.getFullYear(),this.start.getMonth()+1,this.end.getFullYear(),this.end.getMonth()+1);
-		window.dateArray = this.dateArray;
-		this.tag=tag;
-		self.CreateTable('#'+tag);
-		//self.PreProcess(data);
-		self.DrawResourceRows();
-		self.DrawProjectRows();
-		//self.PaintData();
-		window.utilization=100;
-		$('#save').css('background-color','white');
-		
-		$('.select').change(self.ProjectSlectionHandler);
-		$('.delete').click(self.DeleteRowHandler);
-		$('.pcell').click(self.ProjectCellClickHandler);
-		$('#save').click(function()
-		{
-			self.Save(saveurl,savetoken);
-		});
-		$('.addrow').click(
-			function()
-			{
-				var resourceid=$(this).data("resourceid");
-				for(var i=0;i<window.data.length;i++)
-				{
-					resource=window.data[i];
-					var parent = resource.element;
-					var newproject = {};
-					if(resource.id == resourceid)
-					{
-						//console.log(resource.projects.length);
-						if(resource.projects.length > 0)
-						{
-							var lastproject = resource.projects[resource.projects.length-1];
-							newproject={'id':-1,'name':'None','index':lastproject.index+1,'utilization':[]};
-							parent = lastproject.element;
-							//var parent = resource.element;
-						}
-						else
-						{
-							newproject={'id':-1,'name':'None','index':0,'utilization':[]};
-							//var parent = resource.element;
-						}
-						
-						resource.projects.push(newproject);
-						newproject.element = self.GenerateProjectRow(parent,resource, newproject);
-						$('.delete').click(self.DeleteRowHandler);
-						$('.pcell').click(self.ProjectCellClickHandler);
-						$('.select').change(self.ProjectSlectionHandler);
-					}
-				}
-				$('#save').css('background-color','orange');
-			}
-		 );
-		$('.expand').click(
-			function()
-			{
-				var expanded=$(this).data("expanded");
-				var resourceid=$(this).data("resourceid");
-				if( (expanded=== undefined)||(expanded=='0'))
-				{
-					for(var i=0;i<window.data.length;i++)
-					{
-						resource=window.data[i];
-						if(resource.id == resourceid)
-						{
-							for(var j=0;j<resource.projects.length;j++)
-							{
-								resource.projects[j].element.show();
-							}
-							resource.addrow.element.show();
-						}
-					}
-					$(this).removeClass('fa-caret-square-o-down');
-					$(this).addClass('fa-caret-square-o-up');
-					$(this).data('expanded', '1');
-				}
-				else
-				{
-					for(var i=0;i<window.data.length;i++)
-					{
-						resource=window.data[i];
-						if(resource.id == resourceid)
-						{
-							for(var j=0;j<resource.projects.length;j++)
-							{
-								resource.projects[j].element.hide();
-							}
-							resource.addrow.element.hide();
-						}
-					}
-					$(this).addClass('fa-caret-square-o-down');
-					$(this).removeClass('fa-caret-square-o-up');
-					$(this).data('expanded', '0');
-				}
-			}
-		);
-		
-		$.contextMenu(
-		{
-			autoHide:true,
-			selector: '.pcell', 
-			items: 
-			{
-				radio100: {
-					name: "100%", 
-					type: 'radio', 
-					radio: 'radio', 
-					value: '100', 
-					selected: true
-				},
-				radio75: {
-					name: "75%", 
-					type: 'radio', 
-					radio: 'radio', 
-					value: '75'
-				},
-				radio50: {
-					name: "50%", 
-					type: 'radio', 
-					radio: 'radio', 
-					value: '50', 
-					//disabled: true
-				},
-				radio25: {
-					name: "25%", 
-					type: 'radio', 
-					radio: 'radio', 
-					value: '25', 
-					//disabled: true
-				},
-				radiofto: {
-					name: "FTO", 
-					type: 'radio', 
-					radio: 'radio', 
-					value: '-1'
-				},
-				radionone: {
-					name: "Clear", 
-					type: 'radio', 
-					radio: 'radio', 
-					value: '0'
-				}
-			}, 
-			events: 
-			{
-				show: function(opt) 
-				{
-					// this is the trigger element
-					//var $this = this;
-					console.log($(this).attr('id'));
-					$(this).addClass('highlight');
-					// import states from data store 
-					rert = 
-					{
-						"name": "dd",
-						"yesno": false,
-						"select": null
-					}
-					data = this.data();
-					console.log(data);
-					if(data.radio === undefined)
-						data ={"radio":window.utilization.toString()};
-					else
-						data.radio = data.radio.toString();
-					//data = {"radio": "75"};
-					$.contextMenu.setInputValues(opt,data);
-					// this basically fills the input commands from an object
-					// like {name: "foo", yesno: true, radio: "3", &hellip;}
-				}, 
-				hide: function(opt) 
-				{
-					// this is the trigger element
-					//var $this = this;
-					//console.log(this.data());
-					//console.log($(this).attr('id'));
-					// export states to data store
-					$(this).removeClass('highlight');
-					ret = $.contextMenu.getInputValues(opt, this.data());
-					
-					var fields = $(this).attr('id').split("_");	
-					
-					var resourceid=fields[0];
-					var projectindex=fields[1];
-					var found=0;
-					console.log("resource="+resourceid);
-					console.log("projectindex="+projectindex);
-					for(var i=0;i<window.data.length;i++)
-					{
-						var resource=window.data[i];
-						for(var j=0;j<resource.projects.length;j++)
-						{
-							var project=resource.projects[j];
-							if(project.index == projectindex)
-							{
-								project.utilization.push({'week':fields[2]+"_"+fields[3],'util':window.utilization});
-								found=1;
-								break;
-							}
-						}
-		                if(found)
-							break;
-					}
-					//console.log(fields);
-		//project.utilization.push({'week':fields[2]+"_"+fields[3],'util':window.utilization});
-		
-					self.PaintProjectCell( $(this),ret.radio );
-				   
-					//console.log(ret);
-					// this basically dumps the input commands' values to an object
-					// like {name: "foo", yesno: true, radio: "3", &hellip;}
-				}
-			}
-		});
-	}
-	this.PaintProjectCell = function(element,value)
-	{
-		if( value == -1)
-		{
-			element.css('background-color',FTO_COL);
-		}
-		else if( value == 100)
-		{
-			element.css('background-color',UTIL_100_COL);
-		}
-		else if( value == 75)
-		{
-			element.css('background-color',UTIL_75_COL);
-		 }
-		else if( value == 50)
-		{
-			element.css('background-color',UTIL_50_COL);
-		}
-		else if( value == 25)
-		{
-			element.css('background-color',UTIL_25_COL);
-		}
-		else
-		{
-			element.css('background-color',UTIL_0_COL);	
-		}
-		element.data( "radio", value ); 
-		if(value == -1)
-			element.attr('title', 'FTO');
-		else
-			element.attr('title', 'Utilization '+value+'%');
-		var fields = element.attr('id').split("_");
-		self.UpdateAccumulativeUtilization(fields[0],fields[2]+"_"+fields[3]);
-		//updatedcells.push(element);
-		window.utilization=value;
-	}
-	this.UpdateAccumulativeUtilization = function(resourceid,week)
-	{	   
-	   rcell = $('#'+resourceid+'_'+week);
-	   //acc_cell = $(cells[0]);
-	   acc = 0;
-	   for(i=0;i<data.length;i++)
-	   {
-		   resource=data[i];
-		   if(resource.id == resourceid)
-		   {
-			   for(var j=0;j<resource.projects.length;j++)
-			   {
-					var project=resource.projects[j];
-					var pcell = $('#'+resourceid+'_'+project.index+"_"+week);
-					//console.log('#'+resourceid+'_'+project.index+"_"+week);
-					//console.log(pcell);
-					var utilization = pcell.data('radio');
-					//console.log(utilization);
-					if(utilization === undefined)
-						continue;
-					utilization = parseInt(utilization);
-					if(utilization == -1)
-					{
-						acc = -1;
-						break;
-					}
-					else
-						acc += utilization;
-			   }   
-		   }
-	   }
-	   self.PaintResourceCell(rcell,acc);
-	}
-	this.PaintResourceCell = function(element, value)
-	{
-		if( value == -1)
-		{
-			element.css('background-color',FTO_COL);
-		}
-		else if( value == 100)
-		{
-			element.css('background-color',UTIL_100_COL);
-		}
-		else if( value == 75)
-		{
-			element.css('background-color',UTIL_75_COL);
-		 }
-		else if( value == 50)
-		{
-			element.css('background-color',UTIL_50_COL);
-		}
-		else if( value == 25)
-		{
-			element.css('background-color',UTIL_25_COL);
-		}
-		else if( value > 100)
-			element.css('background-color',UTIL_OVER_COL);
-		else
-		{
-			element.css('background-color',UTIL_0_COL);
-			
-		}
-		if(value == -1)
-			element.attr('title', 'FTO');
-		else
-			element.attr('title', 'Utilization '+value+'%');
-		element.data( "acc", value ); 
-	}
-	
-	this._GetDates =  function(startDate, stopDate) 
-	{
-		var dateArray = new Array();
-		var currentDate = startDate;
-		while (currentDate <= stopDate) 
-		{
-			dateArray.push(currentDate)
-			currentDate = currentDate.addDays(1);
-		}
-		return dateArray;
-	}
-	this.CreateTable = function(tag)
-	{
-		table = $('<table>');
-		table.addClass("RmoTable");
-		
-		
-		$(tag).append(table);
-		$(tag).append('<br>');
-		
-		yearrow = self.GenerateYearRow();
-		table.append(yearrow);
-		
-		monthrow = self.GenerateMonthRow();
-		table.append(monthrow);
-		
-		weekrow = self.GenerateWeekRow();
-		table.append(weekrow);
-		
-		this.table = table;
-		
-	}
-	this.GenerateProjectRow=function(parent,resource,project)
-	{
-		var deleteicon=$('<i title="Delete row" style="margin-top:3px;font-size:12px; float:right;" class="fa fa-times-circle" aria-hidden="true"></i>');
-		
-		var select=$('<select></select>');
-		if(project.id == -1)
-			select.append('<option value="-1" selected>Select</option>');
-		else
-			select.append('<option value="-1">Select</option>');
-		
-		found=0;
-		//console.log(this.projects);
-		for (var i=0;i<this.projects.length;i++) 
-		{
-			if(this.projects[i].id == project.id)
-			{
-				select.append('<option value="'+this.projects[i].id+'" selected>'+this.projects[i].name+'</option>');
-				found=1;
-			}
-			else
-				select.append('<option value="'+this.projects[i].id+'">'+this.projects[i].name+'</option>');
-		}
-		if(found==0)
-		{
-			if(project.id >= 0)
-				select.append('<option value="'+project.id+'" selected>'+project.name+'</option>');
-
-		}
-		/////////////////////////////////////////////////////////////////////
-		
-		deleteicon.addClass('delete');
-		deleteicon.data('resourceid',resource.id);
-		deleteicon.data('projectindex',project.index);
-		
-		select.attr('id', 'select_'+resource.id+"_"+project.index);
-		select.data('resourceid',resource.id);
-		select.data('projectindex',project.index);
-		select.addClass('select');
-		
-		var row = $('<tr></tr>');
-		var cell=$('<td></td>');
-		cell.append(select);
-		row.append(cell);
-		cell2=$('<td></td>');
-		cell2.append($(deleteicon));
-		row.append(cell2);
-		cells = self.GenerateProjectRowCells(resource,project,row); 
-		//parent.append(row);
-		parent.after(row);
-		return row;
-	}
-	this.GenerateResourceRow= function(resource) 
-	{
-		expandicon = $('<i style="float:left;margin-right:5px" class="fa fa-caret-square-o-down" aria-hidden="true"></i>');
-		//dropupicon = $('<i class="fa fa-caret-square-o-up" aria-hidden="true"></i>');
-		addrowicon= $('<i title="Add Row" style="font-size:10px;float:right;margin-top:3px;" class="fa fa-plus" aria-hidden="true"></i>');
-		resourcename= $('<span style="margin-left:5px;">'+resource.name+'</span>');
-		
-		expandicon.addClass('expand');
-		expandicon.data('resourceid',resource.id);
-		
-		addrowicon.addClass('addrow');
-		addrowicon.data('resourceid',resource.id);
-		resource.addrow = {};
-		resource.addrow.element = addrowicon;
-		resource.addrow.element.hide();
-		
-		row = $('<tr></tr>');
-		cell=$('<td width="100%"></td>');
-		cell.append(expandicon);
-		cell.append(resourcename);
-		//cell.addClass('fa fa-plus-circle');
-		row.append(cell);
-		cell2=$('<td></td>');
-		cell2.append(addrowicon);
-		row.append(cell2);
-		cells = self.GenerateResourceRowCells(resource,row); 
-		row.append(cells);
-		row.css('background-color','#F0F8FF');
-		//html += '</tr>';
-		//var row = $(html)
-		this.table.append(row);
-		//$('#'+idadd).hide();
-		return row;
-	}
-	this.GenerateYearRow = function()
-	{
-		yearArray = this.dateArray.yearArray;
-		
-		var savebutton= '<button id="save" type="button">Save!</button>';
-
-		html = '<tr class="row_year">';
-		html += '<th class="cell_year">'+savebutton+'</th>';
-		html += '<th class="cell_year">&nbsp&nbsp&nbsp&nbsp</th>';
-		color='#DCDCDC';
-		for (var year in yearArray) 
-		{
-			if(yearArray[year].includes(1))
-				color=this.today_color;
-			else
-			{
-				if(color==this.today_color)
-					color='#FFFFFF';
-			}
-			colspan = Object.keys(yearArray[year]).length;
-			html += '<th style="background-color:'+color+';" class="cell_year" colspan="'+colspan+'">'+year+'</th>';
-		}
-		html += '</tr>';
-		return $(html);
-	}
-	this.GenerateMonthRow =  function()
-	{
-		monthArray = this.dateArray.monthArray;
-		html = '<tr class="row_month">';
-		html += '<th class="cell_month" >Month</th>';
-		html += '<th class="cell_month" ></th>';
-		color='#DCDCDC';
-		for (var month in monthArray) 
-		{
-			if(monthArray[month].includes(1))
-				color=this.today_color;
-			else
-			{
-				if(color==this.today_color)
-					color='#FFFFFF';
-			}
-			colspan = Object.keys(monthArray[month]).length;
-			html += '<th style="background-color:'+color+';" class="cell_month" colspan="'+colspan+'">'+self.MonthName(month.substring(5))+'</th>';
-		}
-		html += '</tr>';
-		return $(html);
-	}
-	this.GenerateWeekRow = function()
-	{
-		weekArray = this.dateArray.weekArray;
-		var html = '<tr class="row_week">';
-		html += '<th  class="cell_week"><span style="margin-left:30px;margin-right:30px;">Week</span></th>';
-		html += '<th  class="cell_week"></th>';
-		html += self.GenerateCells(null,null,'th',1);
-		/*sub=0;
-		for (var week in weekArray) 
-		{
-			colspan = Object.keys(weekArray[week]).length;
-			week = week.substring(5);
-			if(week==1&&colspan==0)
-				sub=1;
-			else if(week==1)
-				sub=0;
-			 
-			week=week-sub;
-			if(week < 10)
-				week = "&nbsp&nbsp"+week+"&nbsp&nbsp";
-			else
-				week = "&nbsp"+week+"&nbsp";
-			if(colspan>0)
-				html += '<th width="40px;" style="font-size:10px;" colspan="'+colspan+'">'+week+'</th>';
-		 }*/
-		 html += '</tr>';
-		 return $(html);
-	}
-	this.GenerateResourceRowCells = function(resource,row)
-	{
-		weekArray =  this.dateArray.weekArray;
-		for (var week in weekArray) 
-		{
-			if(weekArray[week].length < 7)
-				continue;
-			colspan = Object.keys(weekArray[week]).length;
-			cell = $('<td  width="40px;" colspan="'+colspan+'">'+'</td>');
-			cell.attr('id', resource.id+"_"+week);
-			row.append(cell);
-		}
-	}
-	this.GenerateProjectRowCells = function(resource,project,row)
-	{
-		weekArray =  this.dateArray.weekArray;
-		for (var week in weekArray) 
-		{
-			if(weekArray[week].length < 7)
-				continue;
-			colspan = Object.keys(weekArray[week]).length;
-			cell = $('<td  width="40px;" colspan="'+colspan+'">'+'</td>');
-			cell.attr('id', resource.id+"_"+project.index+"_"+week);
-			cell.addClass('pcell');
-			cell.data('resourceid',resource.id);
-			cell.data('projectindex',project.index);
-			row.append(cell);
-		}
-	}
-	this.GenerateCells = function(resource=null,project_index=null,tag='td',showweek=0)
-	{
-		weekArray =  this.dateArray.weekArray;
-		var html='';
-		var sub=0;
-		var id='';
-	   
-	  // $('element').attr('id', 'value');
-	   //$( "p" ).addClass( "myClass yourClass" );
-		var cls = 'cell_'+tag;
-		if(resource != null)
-		{
-			cls = 'cell_'+tag+' cell_resource';
-			id='rcell_'+resource.id;
-		}
-		if(project_index != null)
-		{
-			cls = 'cell_'+tag+' cell_project';
-			id='pcell_'+resource.id+"_"+project_index;
-		}
-		
-		//var today = new Date();
-		// todayyear  = today.getFullYear();
-		color='#DCDCDC';
-		currentweek=0;
-		for (var week in weekArray) 
-		{
-			if(weekArray[week].length < 7)
-				continue;
-			
-			if(currentweek == 0)
-			{
-				for(key in weekArray[week])
-				{
-					//console.log(weekArray[week][key]);
-					if(weekArray[week][key].today == 1)
-					{
-						//console.log(weekArray[week][key]);
-						currentweek=1;
-					}
-					
-				}
-			}
-			
-			colspan = Object.keys(weekArray[week]).length;
-			//console.log(week);
-			//console.log(colspan);
-			year = week.substring(0,4);
-			week = week.substring(5);
-			var data='data-year="'+year+'"';
-			data= data+' data-week="'+week+'"';
-			if(resource !=  null)
-				ncls = cls+' column_'+resource.id+'_'+year+'_'+week;
-			else
-				ncls = cls;
-			
-			if(resource != null)
-				data=data+' data-resource="'+resource.id+'"';
-			if(project_index != null)
-			   data=data+' data-pindex="'+project_index+'"';
-			
-			data=data+' data-tag="'+this.tag+'"';
-			
-			nid = id+"_"+year+"_"+week;
-			if(week==1&&colspan==0)
-				sub=1;
-			else if(week==1)
-				sub=0;
-			 
-			//week=ParseInt(week)+ParseInt(sub);
-			if(showweek)
-			{
-				if(week < 10)
-					week = "&nbsp&nbsp"+week+"&nbsp&nbsp";
-				else
-					week = "&nbsp"+week+"&nbsp";
-			}
-			else
-				week='';
-			if(colspan>0)
-			{
-				if(currentweek==1 && showweek)
-				{
-					html += '<'+tag+' '+data+' style="background-color:'+this.today_color+';" class="'+ncls+'" id="'+nid+'" width="40px;" colspan="'+colspan+'">'+week+'</'+tag+'>';
-					color = '#FFFFFF';
-					currentweek=2;
-				}
-				else if(showweek)
-					html += '<'+tag+' '+data+' style="background-color:'+color+';" class="'+ncls+'" id="'+nid+'" width="40px;" colspan="'+colspan+'">'+week+'</'+tag+'>';
-				else
-					html += '<'+tag+' '+data+' class="'+ncls+'" id="'+nid+'" width="40px;" colspan="'+colspan+'">'+week+'</'+tag+'>';
-			}
-		 }
-		 return html;
-	}
-
 	this.GenerateTableData =   function(startyear,startmonth,endyear,endmonth)
 	{
 		var dateArray = self._GetDates(new Date(startyear,startmonth-1,1), new Date(endyear,endmonth,0 ));
@@ -920,10 +216,7 @@ function Rmo(start,end,resources,projects)
 				yearArray[year]=[]
 				j=0;
 			}
-			
-			
 			yearArray[year][j++] = today;
-			
 			month=dateArray[i].getMonth();
 			if(monthArray[year+"_"+month] === undefined)
 			{
@@ -940,58 +233,227 @@ function Rmo(start,end,resources,projects)
 		return ret;
 		//console.log(weekArray);
 	}
-	this.Load =  function()
+	this.GenerateEmptyRow = function()
 	{
-		$.ajax({
-           type: "GET",
-           url: "load.php",
-           dataType: "json",
-           success: function (msg) 
-		   {
-      
-           }
-       });
-		
-	}
-	this.Save =  function(url, token)
-	{	
-		var savobj = {};
-		savobj.rmo = {};
-		savobj.rmo.data=JSON.parse(JSON.stringify(window.data));
-		savobj.rmo.start = this.start.toISOString().split('T')[0];
-		savobj.rmo.end = this.end.toISOString().split('T')[0];
-		savobj._token = token;
-		for(var i=0;i<savobj.rmo.data.length;i++)
+		yearArray = this.dateArray.yearArray;
+		html = '<tr>';
+		html += '<th class="cell_year"></th>';
+		html += '<th class="cell_year">&nbsp&nbsp&nbsp&nbsp</th>';
+		color='#DCDCDC';
+		colspan = 0;
+		for (var year in yearArray) 
 		{
-			resource=savobj.rmo.data[i];
-			delete  resource.element;
-			delete resource.addrow;
-			for(var j=0;j<resource.projects.length;j++)
+			if(yearArray[year].includes(1))
+				color=this.today_color;
+			else
 			{
-				var project=resource.projects[j];
-				delete  project.element;
+				if(color==this.today_color)
+					color='#FFFFFF';
 			}
+			colspan += Object.keys(yearArray[year]).length;
 		}
-		var datatosend =  savobj;//JSON.stringify(savobj)*/
-		$.ajax({
-           type: "POST",
-           url: url,
-           //dataType: "json",
-		   
-           success: function (msg) 
-		   {
-			   //console.log(CryptoJS.MD5(datatosend).toString());
-				//alert(msg.result);
-				$('#save').css('background-color','white');
-           },
-		   error:function (msg) 
-		   {
-      
-           },
-           data: savobj
-       });
-		
-		
+		html += '<th style="background-color:'+color+';" class="cell_year" colspan="'+colspan+'">'+'</th>';
+	
+		html += '</tr>';
+		return $(html);
 	}
-}
+	this.GenerateYearRow = function()
+	{
+		yearArray = this.dateArray.yearArray;
+		
+		var savebutton= '<button id="save" type="button">Save!</button>';
 
+		html = '<tr class="row_year">';
+		html += '<th class="cell_year"></th>';
+		html += '<th class="cell_year">&nbsp&nbsp&nbsp&nbsp</th>';
+		color='#DCDCDC';
+		for (var year in yearArray) 
+		{
+			if(yearArray[year].includes(1))
+				color=this.today_color;
+			else
+			{
+				if(color==this.today_color)
+					color='#FFFFFF';
+			}
+			colspan = Object.keys(yearArray[year]).length;
+			html += '<th style="background-color:'+color+';" class="cell_year" colspan="'+colspan+'">'+year+'</th>';
+		}
+		html += '</tr>';
+		return $(html);
+	}
+	this.GenerateMonthRow =  function()
+	{
+		monthArray = this.dateArray.monthArray;
+		html = '<tr class="row_month">';
+		html += '<th class="cell_month" >&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspMonth&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</th>';
+		html += '<th class="cell_month" ></th>';
+		color='#DCDCDC';
+		for (var month in monthArray) 
+		{
+			if(monthArray[month].includes(1))
+				color=this.today_color;
+			else
+			{
+				if(color==this.today_color)
+					color='#FFFFFF';
+			}
+			colspan = Object.keys(monthArray[month]).length;
+			html += '<th style="background-color:'+color+';" class="cell_month" colspan="'+colspan+'">'+self.MonthName(month.substring(5))+'</th>';
+		}
+		html += '</tr>';
+		return $(html);
+	}
+	this.GenerateWeekRow = function()
+	{
+		weekArray = this.dateArray.weekArray;
+		var html = '<tr class="row_week">';
+		html += '<th  class="cell_week"><span style="margin-left:30px;margin-right:30px;">Week</span></th>';
+		html += '<th  class="cell_week"></th>';
+		html += self.GenerateCells(null,null,'th',1);
+		html += '</tr>';
+		return $(html);
+	}
+	this.GenerateProjectRow = function(project)
+	{
+		var row = $('<tr></tr>');
+		var cell=$('<td><span style="font-weight:bold;color:blue;margin-left:20px;margin-right:30px;">'+project.name+'</span></td>');
+		row.append(cell);
+		cell2=$('<td></td>');
+		row.append(cell2);
+		self.GenerateUtilCells(null,project,row); 
+		return row;
+	}
+	this.GenerateResourceRow = function(resource,project)
+	{
+		var row = $('<tr></tr>');
+		var cell=$('<td><span style="margin-left:30px;margin-right:30px;">'+resource.name+'</span></td>');
+		row.append(cell);
+		cell2=$('<td></td>');
+		row.append(cell2);
+		self.GenerateUtilCells(resource,project,row); 
+		return row;
+	}
+	this.GenerateUtilCells = function(resource,project,row)
+	{
+		weekArray =  this.dateArray.weekArray;
+		for (var week in weekArray) 
+		{
+			if(weekArray[week].length < 7)
+				continue;
+			colspan = Object.keys(weekArray[week]).length;
+			cell = $('<td  width="40px;" colspan="'+colspan+'">'+'</td>');
+			if(resource != null)
+			{
+				cell.attr('id', resource.id+"_"+project.id+"_"+week);
+				cell.data('resourceid',resource.id);
+			}
+			else
+				cell.attr('id', project.index+"_"+week);
+
+			cell.addClass('pcell');
+			cell.data('projectid',project.id);
+			row.append(cell);
+		}
+	}
+	this.GenerateCells = function(resource=null,project=null,tag='td',showweek=0)
+	{
+		weekArray =  this.dateArray.weekArray;
+		var html='';
+		var sub=0;
+		var id='';
+	   
+	  // $('element').attr('id', 'value');
+	   //$( "p" ).addClass( "myClass yourClass" );
+		//var cls = 'cell_'+tag;
+		var cls='';
+		id='cell_';
+		del='';
+		if(resource != null)
+		{
+			//cls = 'cell_'+tag+' cell_resource';
+			id=id+resource.id;
+			del='_';
+		}
+		if(project != null)
+		{
+			//cls = 'cell_'+tag+' cell_project';
+			id=id+del+project.id;
+	    }
+		
+		//var today = new Date();
+		// todayyear  = today.getFullYear();
+		color='#DCDCDC';
+		currentweek=0;
+		for (var week in weekArray) 
+		{
+			if(weekArray[week].length < 7)
+				continue;
+			
+			if(currentweek == 0)
+			{
+				for(key in weekArray[week])
+				{
+					//console.log(weekArray[week][key]);
+					if(weekArray[week][key].today == 1)
+					{
+						//console.log(weekArray[week][key]);
+						currentweek=1;
+					}
+					
+				}
+			}
+			
+			colspan = Object.keys(weekArray[week]).length;
+			//console.log(week);
+			//console.log(colspan);
+			year = week.substring(0,4);
+			week = week.substring(5);
+			var data='data-year="'+year+'"';
+			data= data+' data-week="'+week+'"';
+			if(resource !=  null)
+				ncls = cls+' column_'+resource.id+'_'+year+'_'+week;
+			else
+				ncls = cls;
+			
+			if(resource != null)
+				data=data+' data-resource="'+resource.id+'"';
+			if(project != null)
+			   data=data+' data-pindex="'+project.id+'"';
+			
+			data=data+' data-tag="'+this.tag+'"';
+			
+			nid = id+"_"+year+"_"+week;
+			if(week==1&&colspan==0)
+				sub=1;
+			else if(week==1)
+				sub=0;
+			 
+			//week=ParseInt(week)+ParseInt(sub);
+			if(showweek)
+			{
+				if(week < 10)
+					week = "&nbsp&nbsp"+week+"&nbsp&nbsp";
+				else
+					week = "&nbsp"+week+"&nbsp";
+			}
+			else
+				week='';
+			if(colspan>0)
+			{
+				if(currentweek==1 && showweek)
+				{
+					html += '<'+tag+' '+data+' style="background-color:'+this.today_color+';" class="'+ncls+'" id="'+nid+'" width="40px;" colspan="'+colspan+'">'+week+'</'+tag+'>';
+					color = '#FFFFFF';
+					currentweek=2;
+				}
+				else if(showweek)
+					html += '<'+tag+' '+data+' style="background-color:'+color+';" class="'+ncls+'" id="'+nid+'" width="40px;" colspan="'+colspan+'">'+week+'</'+tag+'>';
+				else
+					html += '<'+tag+' '+data+' class="'+ncls+'" id="'+nid+'" width="40px;" colspan="'+colspan+'">'+week+'</'+tag+'>';
+			}
+		 }
+		 return html;
+	}
+
+}

@@ -54,10 +54,17 @@ overflow: scroll
 <script src="{{ asset('js/rmo_view_project.js') }}" ></script>
 @endsection
 @section('script')
+var start = '{{$start}}';
+var end = '{{$end}}';
+var projects = @json($projects);
 
- 
 $( document ).ready(function()
 {
+	console.log(projects);
+	var rmo =  new Rmo(start,end);
+	rmo.ShowTable('divtable');
+	for(var i=0;i< projects.length;i++)
+	    rmo.ShowProject(projects[i]);
 	
 });
 @endsection

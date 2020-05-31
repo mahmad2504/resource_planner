@@ -275,7 +275,7 @@ function Rmo(resources,projects,rmo)
 		}
 		//MUMTAZ
 		//project.id =
-		project.id = $(this).val();
+		project.id = $(this).val()*1;
 		project.name=$(this).find(":selected").text();
 		$('#save').css('background-color','orange');
 		//console.log($(this).val());
@@ -330,6 +330,7 @@ function Rmo(resources,projects,rmo)
 		{
 			self.Save(saveurl,savetoken);
 		});
+		
 		$('.addrow').click(
 			function()
 			{
@@ -713,9 +714,10 @@ function Rmo(resources,projects,rmo)
 	}
 	this.GenerateProjectRow=function(parent,resource,project)
 	{
-		console.log("------------->"+project.hide);
+		//console.log("------------->"+project.hide);
 		var deleteicon=$('<i title="Delete row" style="margin-top:3px;font-size:12px; float:right;" class="fa fa-times-circle" aria-hidden="true"></i>');
 		
+
 		var select=$('<select></select>');
 		if(project.id == -1)
 			select.append('<option value="-1" selected>Select</option>');
@@ -745,6 +747,7 @@ function Rmo(resources,projects,rmo)
 		deleteicon.addClass('delete');
 		deleteicon.data('resourceid',resource.id);
 		deleteicon.data('projectindex',project.index);
+
 		
 		select.attr('id', 'select_'+resource.id+"_"+project.index);
 		select.data('resourceid',resource.id);
@@ -757,6 +760,7 @@ function Rmo(resources,projects,rmo)
 		row.append(cell);
 		cell2=$('<td></td>');
 		cell2.append($(deleteicon));
+		
 		row.append(cell2);
 		cells = self.GenerateProjectRowCells(resource,project,row); 
 		//parent.append(row);
@@ -1106,10 +1110,10 @@ function Rmo(resources,projects,rmo)
 		savobj.rmo = {};
 		//console.log(window.data);
 		savobj.rmo.data=JSON.parse(JSON.stringify(window.data));
-		savobj.rmo.start = this.start.toISOString().split('T')[0];
-		savobj.rmo.end = this.end.toISOString().split('T')[0];
-		savobj.rmo.nextindex = window.nextindex;
-		savobj.rmo.owner = window.owner;
+		//savobj.rmo.start = this.start.toISOString().split('T')[0];
+		//savobj.rmo.end = this.end.toISOString().split('T')[0];
+		//savobj.rmo.nextindex = window.nextindex;
+		//savobj.rmo.owner = window.owner;
 		savobj._token = token;
 		for(var i=0;i<savobj.rmo.data.length;i++)
 		{
