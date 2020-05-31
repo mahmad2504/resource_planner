@@ -41,7 +41,7 @@ class Import extends Command
 		$url = env("CONFIG_URL"); 
 		$db = ConnectDb();
 		echo "Importing Projects\r\n";
-		$data = file_get_contents($url."?fetch=projects");
+		$data = file_get_contents($url."?func=getprojects");
 		$projects = json_decode($data);
 		if(isset($projects->status))
 			echo "Nothing to updates\r\n";
@@ -57,7 +57,7 @@ class Import extends Command
 			$db->projects->insertMany($projects);
 		}
 		echo "Importing Resources\r\n";
-		$data = file_get_contents($url."?fetch=resources");
+		$data = file_get_contents($url."?func=getresources");
 		$resources = json_decode($data);
 		if(isset($resources->status))
 			echo "Nothing to updates\r\n";
@@ -66,6 +66,7 @@ class Import extends Command
 			$db->resources->drop();
 			$db->resources->insertMany($resources);
 		}
+		//$data = file_get_contents($url."?func=notify&message=Database Updated'");
 		echo "Done";
     }
 }
