@@ -114,6 +114,9 @@ function Rmo(start,end)
 		weekrow = self.GenerateWeekRow();
 		table.append(weekrow);
 		
+		sprintrow = self.GenerateSprintRow();
+		table.append(sprintrow);
+		
 		this.table = table;
 	}
 	this._GetDates =  function(startDate, stopDate) 
@@ -183,6 +186,7 @@ function Rmo(start,end)
 		yearArray=[];
 		monthArray=[];
 		weekArray=[];
+		sprintArray=[];
 		for (i = 0; i < dateArray.length; i ++ ) 
 		{
 			week=self.ISO8601_week_no(dateArray[i]);
@@ -208,6 +212,13 @@ function Rmo(start,end)
 			}
 			weekArray[year+"_"+week][l++]={'week':week,'today':today,'date':dateArray[i].toString()};
 		   
+		    var sprint = Math.floor(week/3);
+			if(week%3 > 0)
+				sprint = sprint+1;
+			if(sprintArray[year+"_"+sprint] === undefined)
+				sprintArray[year+"_"+sprint]=[];
+			
+			sprintArray[year+"_"+sprint].push(today);
 			///////////////////////////////////////////////////////////////////
 		   
 			year=dateArray[i].getFullYear();
@@ -229,6 +240,7 @@ function Rmo(start,end)
 		ret.weekArray = weekArray;
 		ret.monthArray = monthArray;
 		ret.yearArray = yearArray;
+		ret.sprintArray= sprintArray;
 		//console.log(weekArray);
 		return ret;
 		//console.log(weekArray);
@@ -311,6 +323,42 @@ function Rmo(start,end)
 		html += '<th  class="cell_week"><span style="margin-left:30px;margin-right:30px;">Week</span></th>';
 		html += '<th  class="cell_week"></th>';
 		html += self.GenerateCells(null,null,'th',1);
+		html += '</tr>';
+		return $(html);
+	}
+	this.GenerateSprintRow =  function()
+	{
+		sprintArray = this.dateArray.sprintArray;
+		html = '<tr class="row_sprint">';
+		html += '<td style="text-align: center;font-weight:bold" class="cell_sprint" >Sprint</td>';
+		html += '<td class="cell_sprint" ></td>';
+		color='#DCDCDC';
+		var last_colspan = 0;
+		for (var sprint in sprintArray) 
+		{
+			if(sprintArray[sprint].includes(1))
+				color=this.today_color;
+			else
+			{
+				if(color==this.today_color)
+					color='#FFFFFF';
+			}
+			colspan = Object.keys(sprintArray[sprint]).length;
+			//if(colspan < 21)
+			//{
+			//	continue;
+			//}
+			if(colspan < 7)
+				continue
+			else if(colspan < 14)
+				colspan=7;
+			else if(colspan < 21)
+				colspan=14;
+			//console.log("colspan "+colspan+ "  "+sprint);
+			if(colspan < 14)
+				sprint='';
+			html += '<td width="40px;" style="text-align: center; background-color:'+color+';" class="cell_sprint" colspan="'+colspan+'">'+sprint.substring(5)+'</td>';
+		}
 		html += '</tr>';
 		return $(html);
 	}
