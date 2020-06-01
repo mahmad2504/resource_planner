@@ -23,7 +23,8 @@ class Rmo
 	function Get($user)
 	{
 		$projection = ['projection'=>['_id'=>0]];
-		$users = $this->db->resources->find(['manager'=>$user],$projection)->toArray();
+		$query=['manager'=>['$in'=>[$user,'all']]];
+		$users = $this->db->resources->find($query,$projection)->toArray();
 		if(count($users)==0)
 		{
 			$da=json_decode('{"data":[],"nextindex":0}');
@@ -38,8 +39,20 @@ class Rmo
 		{
 			$query = ['id'=>$user->id];
 			$resource = $this->db->utilization->findOne($query,$projection);
-			if($resource !=null)
+			$i=0;
+			$del = [];
+			if($resource != null)
+			{
+				foreach($resource->projects as $project)
+				{
+					if(count($project->utilization)==0)
+						$del[] = $i;
+					$i++;
+				}
+				foreach($del as $d)
+					unset($resource->projects[$d]);
 				$rmo->data[] = $resource;
+			}
 		}
 		return $rmo;
 	}
@@ -174,6 +187,17 @@ class Rmo
 		{
 			//dd($resource);
 			$query =['id'=> $resource->id];
+			$i=0;
+			$del = [];
+			foreach($resource->projects as $project)
+			{
+				if(count($project->utilization)==0)
+					$del[] = $i;
+				$i++;
+			}
+			foreach($del as $d)
+				unset($resource->projects[$d]);
+				
 			$this->db->utilization->updateOne($query,['$set'=>$resource],['upsert'=>true]);
 
 		}
