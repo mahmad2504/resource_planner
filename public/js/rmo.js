@@ -709,8 +709,10 @@ function Rmo(resources,projects,rmo)
 		weekrow = self.GenerateWeekRow();
 		table.append(weekrow);
 		
-		this.table = table;
+		sprintrow = self.GenerateSprintRow();
+		table.append(sprintrow);
 		
+		this.table = table;
 	}
 	this.GenerateProjectRow=function(parent,resource,project)
 	{
@@ -904,6 +906,43 @@ function Rmo(resources,projects,rmo)
 		 html += '</tr>';
 		 return $(html);
 	}
+	
+	this.GenerateSprintRow =  function()
+	{
+		sprintArray = this.dateArray.sprintArray;
+		html = '<tr class="row_sprint">';
+		html += '<td style="text-align: center;font-weight:bold" class="cell_sprint" >Sprint</td>';
+		html += '<td class="cell_sprint" ></td>';
+		color='#DCDCDC';
+		var last_colspan = 0;
+		for (var sprint in sprintArray) 
+		{
+			if(sprintArray[sprint].includes(1))
+				color=this.today_color;
+			else
+			{
+				if(color==this.today_color)
+					color='#FFFFFF';
+			}
+			colspan = Object.keys(sprintArray[sprint]).length;
+			//if(colspan < 21)
+			//{
+			//	continue;
+			//}
+			if(colspan < 7)
+				continue
+			else if(colspan < 14)
+				colspan=7;
+			else if(colspan < 21)
+				colspan=14;
+			//console.log("colspan "+colspan+ "  "+sprint);
+			if(colspan < 14)
+				sprint='';
+			html += '<td width="40px;" style="text-align: center; background-color:'+color+';" class="cell_sprint" colspan="'+colspan+'">'+sprint.substring(5)+'</td>';
+		}
+		html += '</tr>';
+		return $(html);
+	}
 	this.GenerateResourceRowCells = function(resource,row)
 	{
 		weekArray =  this.dateArray.weekArray;
@@ -1038,6 +1077,7 @@ function Rmo(resources,projects,rmo)
 		yearArray=[];
 		monthArray=[];
 		weekArray=[];
+		sprintArray=[];
 		for (i = 0; i < dateArray.length; i ++ ) 
 		{
 			week=self.ISO8601_week_no(dateArray[i]);
@@ -1053,7 +1093,9 @@ function Rmo(resources,projects,rmo)
 				weekArray[year+"_"+week]=[]
 				l=0;
 			}
-			 
+			//console.log("---->"+week);
+			
+			
 			
 			today=0;
 			if( self.isToday(dateArray[i]) )
@@ -1063,6 +1105,13 @@ function Rmo(resources,projects,rmo)
 			}
 			weekArray[year+"_"+week][l++]={'week':week,'today':today,'date':dateArray[i].toString()};
 		   
+		    var sprint = Math.floor(week/3);
+			if(week%3 > 0)
+				sprint = sprint+1;
+			if(sprintArray[year+"_"+sprint] === undefined)
+				sprintArray[year+"_"+sprint]=[];
+			
+			sprintArray[year+"_"+sprint].push(today);
 			///////////////////////////////////////////////////////////////////
 		   
 			year=dateArray[i].getFullYear();
@@ -1087,6 +1136,9 @@ function Rmo(resources,projects,rmo)
 		ret.weekArray = weekArray;
 		ret.monthArray = monthArray;
 		ret.yearArray = yearArray;
+		ret.sprintArray = sprintArray;
+		console.log(sprintArray);
+		console.log(weekArray);
 		//console.log(weekArray);
 		return ret;
 		//console.log(weekArray);
